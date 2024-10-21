@@ -75,23 +75,23 @@ def load_model(filename):
 
 # Initialising the models
 
-xgboost_model = load_model('models/xgb_model.pkl')
+xgboost_model = load_model('xgb_model.pkl')
 
-naive_bayes_model = load_model('models/nb_model.pkl')
+naive_bayes_model = load_model('nb_model.pkl')
 
-random_forest_model = load_model('models/rf_model.pkl')
+random_forest_model = load_model('rf_model.pkl')
 
-decision_tree_model = load_model('models/dt_model.pkl')
+decision_tree_model = load_model('dt_model.pkl')
 
-svm_model = load_model('models/svm_model.pkl')
+svm_model = load_model('svm_model.pkl')
 
-knn_model = load_model('models/knn_model.pkl')
+knn_model = load_model('knn_model.pkl')
 
-voting_classifier_model = load_model('models/voting_classifier.pkl')
+voting_classifier_model = load_model('voting_classifier.pkl')
 
-xgboost_SMOTE_model = load_model('models/xgboost_smote.pkl')
+xgboost_SMOTE_model = load_model('xgboost_smote.pkl')
 
-xgboost_feature_engineered_model = load_model('models/xgboost_feature_engineered.pkl')
+xgboost_feature_engineered_model = load_model('xgboost_feature_engineered.pkl')
 
 def prepare_input(credit_score, location, gender, age, tenure, balance, num_products, 
                   is_active_member, estimated_salary):
@@ -166,7 +166,7 @@ def generate_email(probability, input_dict, explanation, surname):
 st.title("Bank Customer Churn Prediction📊")
 st.markdown("Created by [Parin Acharya](https://www.linkedin.com/in/parinacharya/)")
 
-df = pd.read_csv("data/churn.csv")
+df = pd.read_csv("churn.csv")
 
 customers = [f"{row['CustomerId']} - {row['Surname']}" for _, row in df.iterrows()]
 
