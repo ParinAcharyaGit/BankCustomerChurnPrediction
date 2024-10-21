@@ -259,7 +259,15 @@ if selected_customer_option:
   st.markdown(email)
 
   st.markdown("---")  
-  st.markdown("To implement: customer percentiles for different metrics")
+  st.markdown("Customer percentiles for different metrics")
+  percentiles = st.slider('Select percentiles:', min_value=0, max_value=100)
+  calculated_percentiles = df['Balance'].quantile(p / 1 for p in percentiles)
+
+  st.write(f"Percentiles for {selected_customer['Surname']} are {calculated_percentiles}")
+  st.table(calculated_percentiles)
+
+  
+  st.markdown("---")  
   st.markdown("Thank you for using this tool")
 
     
