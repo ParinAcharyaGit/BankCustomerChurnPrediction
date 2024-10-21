@@ -241,6 +241,32 @@ if selected_customer_option:
       min_value = 0.0,
       value = float(selected_customer['EstimatedSalary'])
     )
+    
+  st.markdown("---")  
+  st.markdown("Customer percentiles for different metrics")
+  metric_options = ['Balance', 'CreditScore', 'Tenure', 'EstimatedSalary']
+  selected_metric = st.selectbox('Select a metric to display percentiles:', metric_options)
+
+  # Locate the user by their surname and find their balance directly
+  user_value = df.loc[df['Surname'] == selected_surname, selected_metric].values[0]
+
+  # Calculate the percentile of the user's value compared to the entire selected metric column
+  user_percentile = percentileofscore(df[selected_metric], user_value)
+
+  # Display the user's value and percentile rank
+  st.write(f"The {selected_metric.lower()} for {selected_surname} is: {user_value}")
+  st.write(f"The customer falls in the {user_percentile:.2f}th percentile of {selected_metric.lower()}.")
+
+  # Create the pie chart
+  percentile_data = [user_percentile, 100 - user_percentile]  # User's percentile and the rest
+  labels = [f"{user_percentile:.2f}% of customers", f"{100 - user_percentile:.2f}% of customers"]
+
+  fig, ax = plt.subplots()
+  ax.pie(percentile_data, labels=labels, autopct='%1.1f%%', startangle=90, colors=['#66c2a5', '#fc8d62'])
+  ax.axis('equal')  # Equal aspect ratio ensures the pie chart is drawn as a circle.
+
+  # Display the pie chart in Streamlit
+  st.pyplot(fig)
 
   predict = st.button("Will this customer churn?")
   if predict:
@@ -262,34 +288,6 @@ if selected_customer_option:
     st.markdown("---")
     st.subheader("Email to Customer")
     st.markdown(email)
-
-    st.markdown("---")  
-    st.markdown("Customer percentiles for different metrics")
-    metric_options = ['Balance', 'CreditScore', 'Tenure', 'EstimatedSalary']
-    selected_metric = st.selectbox('Select a metric to display percentiles:', metric_options)
-
-    # Locate the user by their surname and find their balance directly
-    user_value = df.loc[df['Surname'] == selected_surname, selected_metric].values[0]
-
-    # Calculate the percentile of the user's value compared to the entire selected metric column
-    user_percentile = percentileofscore(df[selected_metric], user_value)
-
-    # Display the user's value and percentile rank
-    st.write(f"The {selected_metric.lower()} for {selected_surname} is: {user_value}")
-    st.write(f"The customer falls in the {user_percentile:.2f}th percentile of {selected_metric.lower()}.")
-
-    # Create the pie chart
-    percentile_data = [user_percentile, 100 - user_percentile]  # User's percentile and the rest
-    labels = [f"{user_percentile:.2f}% of customers", f"{100 - user_percentile:.2f}% of customers"]
-
-    fig, ax = plt.subplots()
-    ax.pie(percentile_data, labels=labels, autopct='%1.1f%%', startangle=90, colors=['#66c2a5', '#fc8d62'])
-    ax.axis('equal')  # Equal aspect ratio ensures the pie chart is drawn as a circle.
-
-    # Display the pie chart in Streamlit
-    st.pyplot(fig)
-
-
     
   st.markdown("---")  
   st.markdown("Thank you for using this tool")
