@@ -241,32 +241,47 @@ if selected_customer_option:
       min_value = 0.0,
       value = float(selected_customer['EstimatedSalary'])
     )
-    
+
   st.markdown("---")  
   st.markdown("Customer percentiles for different metrics")
   metric_options = ['Balance', 'CreditScore', 'Tenure', 'EstimatedSalary']
-  selected_metric = st.selectbox('Select a metric to display percentiles:', metric_options)
 
-  # Locate the user by their surname and find their balance directly
-  user_value = df.loc[df['Surname'] == selected_surname, selected_metric].values[0]
+# Initialize a list to store the user's percentile ranks for all metrics
+  percentiles = {}
 
-  # Calculate the percentile of the user's value compared to the entire selected metric column
-  user_percentile = percentileofscore(df[selected_metric], user_value)
+  # Locate the user by their surname
+  if selected_surname:
+      for metric in metric_options:
+          user_value = df.loc[df['Surname'] == selected_surname, metric].values[0]
+          
+          # Calculate the percentile of the user's value compared to the entire selected metric column
+          user_percentile = percentileofscore(df[metric], user_value)
+          
+          # Store the user's value and percentile rank
+          percentiles[metric] = (user_value, user_percentile)
 
-  # Display the user's value and percentile rank
-  st.write(f"The {selected_metric.lower()} for {selected_surname} is: {user_value}")
-  st.write(f"The customer falls in the {user_percentile:.2f}th percentile of {selected_metric.lower()}.")
+          # Display the user's value and percentile rank
+          st.write(f"The {metric.lower()} for {selected_surname} is: {user_value}")
+          st.write(f"The customer falls in the {user_percentile:.2f}th percentile of {metric.lower()}.")
 
-  # Create the pie chart
-  percentile_data = [user_percentile, 100 - user_percentile]  # User's percentile and the rest
-  labels = [f"{user_percentile:.2f}% of customers", f"{100 - user_percentile:.2f}% of customers"]
+      # Create a box plot for all metrics
+      fig, ax = plt.subplots()
 
-  fig, ax = plt.subplots()
-  ax.pie(percentile_data, labels=labels, autopct='%1.1f%%', startangle=90, colors=['#66c2a5', '#fc8d62'])
-  ax.axis('equal')  # Equal aspect ratio ensures the pie chart is drawn as a circle.
+      # Prepare the data for the box plot
+      ax.boxplot([df[metric] for metric in metric_options], labels=metric_options)
 
-  # Display the pie chart in Streamlit
-  st.pyplot(fig)
+      # Add a marker for the user's value on the box plot
+      for i, metric in enumerate(metric_options):
+          user_value = percentiles[metric][0]
+          ax.plot(i + 1, user_value, 'ro', label=f"{selected_surname}'s {metric}")
+
+      # Set plot title and labels
+      ax.set_title('Box Plot of Customer Metrics')
+      ax.set_ylabel('Values')
+      ax.legend(loc='upper right')
+
+      # Display the box plot in Streamlit
+      st.pyplot(fig)
 
   predict = st.button("Will this customer churn?")
   if predict:
