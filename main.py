@@ -5,6 +5,8 @@ import numpy as np
 import os
 from openai import OpenAI
 from utils import create_gauge_chart, create_model_probability_chart
+from scipy.stats import percentileofscore
+import matplotlib.pyplot as plt
 
 client = OpenAI(
   base_url = 'https://api.groq.com/openai/v1',
@@ -240,48 +242,70 @@ if selected_customer_option:
       value = float(selected_customer['EstimatedSalary'])
     )
 
+  predict = st.button("Will this customer churn?")
+  if predict:
+
     input_df, input_dict = prepare_input(credit_score, location, gender, age, tenure, balance, num_products, 
-                                        is_active_member, estimated_salary)
-    
+                                          is_active_member, estimated_salary)
+      
     avg_probability = make_predictions(input_df, input_dict)
-  st.markdown("---")
-  st.subheader("Churn Probability Result")
-  st.write(f"Average Probability of Churn for {selected_customer['Surname']} : {round(avg_probability*100, 1)}%")
-  
-  explanation = explain_prediction(avg_probability, input_dict, selected_customer['Surname'])
-  st.markdown("---")
-  st.subheader("Explanation of the Prediction")
-  st.markdown(explanation)
+    st.markdown("---")
+    st.subheader("Churn Probability Result")
+    st.write(f"Average Probability of Churn for {selected_customer['Surname']} : {round(avg_probability*100, 1)}%")
+    
+    explanation = explain_prediction(avg_probability, input_dict, selected_customer['Surname'])
+    st.markdown("---")
+    st.subheader("Explanation of the Prediction")
+    st.markdown(explanation)
 
-  email = generate_email(avg_probability, input_dict, explanation, selected_customer['Surname'])
-  st.markdown("---")
-  st.subheader("Email to Customer")
-  st.markdown(email)
+    email = generate_email(avg_probability, input_dict, explanation, selected_customer['Surname'])
+    st.markdown("---")
+    st.subheader("Email to Customer")
+    st.markdown(email)
 
-  st.markdown("---")  
-  st.markdown("Customer percentiles for different metrics")
-  percentiles = st.slider('Select percentiles:', min_value=0, max_value=100)
-  calculated_percentiles = df['Balance'].quantile(p / 1 for p in percentiles)
+    st.markdown("---")  
+    st.markdown("Customer percentiles for different metrics")
+    metric_options = ['Balance', 'CreditScore', 'Tenure', 'EstimatedSalary']
+    selected_metric = st.selectbox('Select a metric to display percentiles:', metric_options)
 
-  st.write(f"Percentiles for {selected_customer['Surname']} are {calculated_percentiles}")
-  st.table(calculated_percentiles)
+    # Locate the user by their surname and find their balance directly
+    user_value = df.loc[df['Surname'] == selected_surname, selected_metric].values[0]
 
-  
+    # Calculate the percentile of the user's value compared to the entire selected metric column
+    user_percentile = percentileofscore(df[selected_metric], user_value)
+
+    # Display the user's value and percentile rank
+    st.write(f"The {selected_metric.lower()} for {selected_surname} is: {user_value}")
+    st.write(f"The customer falls in the {user_percentile:.2f}th percentile of {selected_metric.lower()}.")
+
+    # Create the pie chart
+    percentile_data = [user_percentile, 100 - user_percentile]  # User's percentile and the rest
+    labels = [f"{user_percentile:.2f}% of customers", f"{100 - user_percentile:.2f}% of customers"]
+
+    fig, ax = plt.subplots()
+    ax.pie(percentile_data, labels=labels, autopct='%1.1f%%', startangle=90, colors=['#66c2a5', '#fc8d62'])
+    ax.axis('equal')  # Equal aspect ratio ensures the pie chart is drawn as a circle.
+
+    # Display the pie chart in Streamlit
+    st.pyplot(fig)
+
+
+    
   st.markdown("---")  
   st.markdown("Thank you for using this tool")
 
-    
+      
 
 
-
-  
-    
 
     
+      
 
-                                                                    
-                                                        
-                                                                    
+      
+
+                                                                      
+                                                          
+                                                                      
 
     
     
