@@ -7,6 +7,7 @@ from openai import OpenAI
 from utils import create_gauge_chart, create_model_probability_chart
 from scipy.stats import percentileofscore
 import matplotlib.pyplot as plt
+import plotly.express as px
 
 client = OpenAI(
   base_url = 'https://api.groq.com/openai/v1',
@@ -246,63 +247,41 @@ if selected_customer_option:
   st.markdown("Customer percentiles for different metrics")
   metric_options = ['Balance', 'CreditScore', 'Tenure', 'EstimatedSalary']
 
-# Initialize a list to store the user's percentile ranks for all metrics
+  # Initialize a list to store the user's percentile ranks for all metrics
   percentiles = {}
 
   # Locate the user by their surname
-  if selected_surname:
-      for metric in metric_options:
-          user_value = df.loc[df['Surname'] == selected_surname, metric].values[0]
-          
-          # Calculate the percentile of the user's value compared to the entire selected metric column
-          user_percentile = percentileofscore(df[metric], user_value)
-          
-          # Store the user's value and percentile rank
-          percentiles[metric] = (user_value, user_percentile)
-
-          # Display the user's value and percentile rank
-          st.write(f"The {metric.lower()} for {selected_surname} is: {user_value}")
-          st.write(f"The customer falls in the {user_percentile:.2f}th percentile of {metric.lower()}.")
-
-      # Create a box plot for all metrics
-      fig, ax = plt.subplots()
-
-      # Prepare the data for the box plot
-      ax.boxplot([df[metric] for metric in metric_options], labels=metric_options)
-
-      # Add a marker for the user's value on the box plot
-      for i, metric in enumerate(metric_options):
-          user_value = percentiles[metric][0]
-          ax.plot(i + 1, user_value, 'ro', label=f"{selected_surname}'s {metric}")
-
-      # Set plot title and labels
-      ax.set_title('Box Plot of Customer Metrics')
-      ax.set_ylabel('Values')
-      ax.legend(loc='upper right')
-
-      # Display the box plot in Streamlit
-      st.pyplot(fig)
-
-  predict = st.button("Will this customer churn?")
-  if predict:
-
-    input_df, input_dict = prepare_input(credit_score, location, gender, age, tenure, balance, num_products, 
-                                          is_active_member, estimated_salary)
+  for metric in metric_options:
+      user_value = df.loc[df['Surname'] == selected_surname, metric].values[0]
       
-    avg_probability = make_predictions(input_df, input_dict)
-    st.markdown("---")
-    st.subheader("Churn Probability Result")
-    st.write(f"Average Probability of Churn for {selected_customer['Surname']} : {round(avg_probability*100, 1)}%")
-    
-    explanation = explain_prediction(avg_probability, input_dict, selected_customer['Surname'])
-    st.markdown("---")
-    st.subheader("Explanation of the Prediction")
-    st.markdown(explanation)
+      # Calculate the percentile of the user's value compared to the entire selected metric column
+      user_percentile = percentileofscore(df[metric], user_value)
+      
+      # Store the user's value and percentile rank
+      percentiles[metric] = (user_value, user_percentile)
 
-    email = generate_email(avg_probability, input_dict, explanation, selected_customer['Surname'])
-    st.markdown("---")
-    st.subheader("Email to Customer")
-    st.markdown(email)
+  # Create a histogram for percentiles
+  fig = px.box(df,y=metric_options, points="all")
+  fig.update_layout(title="Customer Percentiles across different Metrics")
+  st.plotly_chart(fig)
+
+  input_df, input_dict = prepare_input(credit_score, location, gender, age, tenure, balance, num_products, 
+                                        is_active_member, estimated_salary)
+    
+  avg_probability = make_predictions(input_df, input_dict)
+  st.markdown("---")
+  st.subheader("Churn Probability Result")
+  st.write(f"Average Probability of Churn for {selected_customer['Surname']} : {round(avg_probability*100, 1)}%")
+  
+  explanation = explain_prediction(avg_probability, input_dict, selected_customer['Surname'])
+  st.markdown("---")
+  st.subheader("Explanation of the Prediction")
+  st.markdown(explanation)
+
+  email = generate_email(avg_probability, input_dict, explanation, selected_customer['Surname'])
+  st.markdown("---")
+  st.subheader("Email to Customer")
+  st.markdown(email)
     
   st.markdown("---")  
   st.markdown("Thank you for using this tool")

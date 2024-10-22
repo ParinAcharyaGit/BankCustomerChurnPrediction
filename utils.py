@@ -20,7 +20,9 @@ def create_gauge_chart(probability):
                               number={'font': {
                                 'size': 40,
                                 'color': 'white'
-                              }},
+                              },
+                              'valueformat': '.0%',
+                              },
                               gauge={
                                 'axis':{
                                   'range': [0, 100],
