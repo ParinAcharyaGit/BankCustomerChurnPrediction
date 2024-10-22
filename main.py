@@ -247,31 +247,40 @@ if selected_customer_option:
   st.markdown("Customer percentiles for different metrics")
   metric_options = ['Balance', 'CreditScore', 'Tenure', 'EstimatedSalary']
 
-  # Initialize a list to store the user's percentile ranks for all metrics
-  percentiles = {}
+  metric_names = []
+  percentile_values = []
 
-  # Locate the user by their surname
   for metric in metric_options:
-      user_value = df.loc[df['Surname'] == selected_surname, metric].values[0]
-      
-      # Calculate the percentile of the user's value compared to the entire selected metric column
-      user_percentile = percentileofscore(df[metric], user_value)
-      
-      # Store the user's value and percentile rank
-      percentiles[metric] = (user_value, user_percentile)
+    user_value = df.loc[df['Surname'] == selected_surname, metric].values[0]
+    
+    # Calculate the percentile of the user's value compared to the entire selected metric column
+    user_percentile = percentileofscore(df[metric], user_value)
+    
+    # Append metric names and corresponding percentiles for the user
+    metric_names.append(metric)
+    percentile_values.append(user_percentile)
 
-  # Create a histogram for percentiles
-  fig = px.box(df,y=metric_options, points="all")
-  fig.update_layout(title="Customer Percentiles across different Metrics")
+  # Create a bar chart 
+  fig = px.bar(x=metric_names, y=percentile_values,
+              labels={'x': 'Metric', 'y': 'Percentile'},
+              title=f"Percentile Ranking of {selected_surname} across different Metrics")
+
+  # Update layout for better readability
+  fig.update_layout(
+      xaxis_title="Metric",
+      yaxis_title="Percentile",
+      yaxis_range=[0, 100],  # Percentiles range from 0 to 100
+      height=500
+  )
+
+  # Display the bar chart in Streamlit
   st.plotly_chart(fig)
+
 
   input_df, input_dict = prepare_input(credit_score, location, gender, age, tenure, balance, num_products, 
                                         is_active_member, estimated_salary)
     
   avg_probability = make_predictions(input_df, input_dict)
-  st.markdown("---")
-  st.subheader("Churn Probability Result")
-  st.write(f"Average Probability of Churn for {selected_customer['Surname']} : {round(avg_probability*100, 1)}%")
   
   explanation = explain_prediction(avg_probability, input_dict, selected_customer['Surname'])
   st.markdown("---")

@@ -21,7 +21,8 @@ def create_gauge_chart(probability):
                                 'size': 40,
                                 'color': 'white'
                               },
-                              'valueformat': '.0%',
+                              'suffix' : '%',
+                              'valueformat': '.1f',
                               },
                               gauge={
                                 'axis':{
